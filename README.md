@@ -14,16 +14,24 @@
 3. Commit rõ phần bản thân làm
 
 ## Tổng quan nhánh
-1. main: nhánh chính, chứa code mới, ổn định, không commit trực tiếp trên nhánh này
-2. Các nhánh làm việc
-    2.1. Tạo từ main
-    2.2. Quy ước đặt tên: feature/ten-chuc-nang
+### main
+Nhánh chính, chứa code mới, ổn định, không commit trực tiếp trên nhánh này
+### Các nhánh làm việc
+1. Tạo từ main
+2. Quy ước đặt tên: feature/ten-chuc-nang
 ### Bắt đầu chức năng mới 
 ```
 git checkout main
 git pull origin main
 git checkout -b feature/ten-chuc-nang
 ```
+### Push code & Pull Request
+```
+git push origin feature/ten-chuc-nang 
+```
+*Nhánh đã PR lần sau chỉ cần git push
+
+
 
 ## Cấu trúc thư mục
 
