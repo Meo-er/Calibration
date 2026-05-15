@@ -22,8 +22,15 @@ df_cleaned.to_csv("./data/processed/tuesday_cleaned.csv", index=False)
 
 # Chia dữ liệu
 X_train, X_cal, X_test, y_train, y_cal, y_test, scaler = preprocess_baseline(df_cleaned)
+
 # Biểu đồ dlieu ban đầu
-plot_label_distribution(pd.concat([y_train, y_test]))
+y_total = pd.concat([y_train, y_cal, y_test])
+print("\nPHÂN BỐ NHÃN BAN ĐẦU")
+print(f"Tổng số mẫu: {len(y_total)}")
+print(f"Số Benign: {(y_total == 0).sum()}")
+print(f"Số Attack: {(y_total == 1).sum()}")
+plot_label_distribution(y_total)
+
 # phân tích 3 đặc trưng
 feature_sample = ["Flow Duration", "Total Fwd Packets", "Flow Bytes/s"]
 existing_features = [f for f in feature_sample if f in df_cleaned.columns]
