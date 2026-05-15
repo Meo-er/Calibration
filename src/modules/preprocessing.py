@@ -24,8 +24,12 @@ def preprocess_baseline(df):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # 4. Chia train/test
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=0.2, random_state=42, stratify=y
+    # 4. Chia train/calibration/test (60/20/20)
+    X_train, X_temp, y_train, y_temp = train_test_split(
+        X_scaled, y, test_size=0.4, random_state=42, stratify=y
     )
-    return X_train, X_test, y_train, y_test, scaler
+
+    X_cal, X_test, y_cal, y_test = train_test_split(
+        X_temp, y_temp, test_size=0.5, random_state=42, stratify=y_temp
+    )
+    return X_train, X_cal, X_test, y_train, y_cal, y_test, scaler
