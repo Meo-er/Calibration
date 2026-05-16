@@ -23,7 +23,7 @@ df_cleaned.to_csv("./data/processed/tuesday_cleaned.csv", index=False)
 # Chia dữ liệu
 X_train, X_cal, X_test, y_train, y_cal, y_test, scaler = preprocess_baseline(df_cleaned)
 
-# Biểu đồ dlieu ban đầu
+# Biểu đồ dữ liệu ban đầu
 y_total = pd.concat([y_train, y_cal, y_test])
 print("\nPHÂN BỐ NHÃN BAN ĐẦU")
 print(f"Tổng số mẫu: {len(y_total)}")
