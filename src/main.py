@@ -16,7 +16,7 @@ readFile = "./data/raw/Tuesday-WorkingHours.pcap_ISCX.csv"
 df = pd.read_csv(readFile)
 
 # Overview
-print("Đang đọc dữ liệu...\n")
+
 data_overview(df)
 df_cleaned = data_cleaned(df)
 benign = (df_cleaned["Label"] == 0).sum()
