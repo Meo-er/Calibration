@@ -16,8 +16,13 @@ readFile = "./data/raw/Tuesday-WorkingHours.pcap_ISCX.csv"
 df = pd.read_csv(readFile)
 
 # Overview
+print("Đang đọc dữ liệu...\n")
 data_overview(df)
 df_cleaned = data_cleaned(df)
+benign = (df_cleaned["Label"] == 0).sum()
+attack = (df_cleaned["Label"] == 1).sum()
+print(f"Tỷ lệ Benign:Attack = {benign}:{attack} ~ {benign/attack:.1f}:1")
+
 df_cleaned.to_csv("./data/processed/tuesday_cleaned.csv", index=False)
 
 # Chia dữ liệu
