@@ -26,7 +26,7 @@ def data_cleaned(df_input: pd.DataFrame):
     print(df.loc[nan_mask, "Label"].value_counts().rename_axis(None).to_string())
     print(f"Số dòng sẽ xóa: {df.isnull().any(axis=1).sum()} ")
     df = df.dropna()
-    print(f"Số dòng còn lại: {df.shape[0]}\n")
+    print(f"Dữ liệu còn lại: {df.shape}\n")
 
     # Xóa dòng trùng
     print("-----Xử lý các dòng trùng lặp-----")
@@ -35,7 +35,7 @@ def data_cleaned(df_input: pd.DataFrame):
     print(df.loc[duplicate_mask, "Label"].value_counts().rename_axis(None).to_string())
     print(f"Số dòng sẽ xóa: {df.duplicated().sum()}")
     df = df.drop_duplicates()
-    print(f"Số dòng còn lại: {df.shape[0]}")
+    print(f"Dữ liệu còn lại: {df.shape}")
     print()
 
     # Xử lý dòng chứa giá trị âm
@@ -51,48 +51,25 @@ def data_cleaned(df_input: pd.DataFrame):
         f"Các cột chứa giá trị âm: \n{negative_count.sort_values(ascending=False).to_string()}"
     )
     print("Giữ Init_Win_bytes_backward và Init_Win_bytes_forward vì hợp lệ...")
-    # ép Flow IAT Min về 0 nếu âm vì gói tin có thể đến cùng lúc
-    print("Ép Flow IAT Min về 0 vì gói tin có thể đến cùng lúc...")
-    if "Flow IAT Min" in df.columns:
-        df["Flow IAT Min"] = df["Flow IAT Min"].clip(lower=0)
-
-    fix_negative_cols = [
+    # Xóa các dòng chứa giá trị âm ở các đặc trưng thời gian/tốc độ
+    print(
+        "Xóa các dòng chứa giá trị âm tại Flow IAT Min, Flow IAT Mean, Flow Packets/s, Flow IAT Max"
+    )
+    drop_negative_cols = [
+        "Flow IAT Min",
         "Flow IAT Mean",
         "Flow IAT Max",
         "Flow Packets/s",
     ]
-
-    print("Chuẩn hóa median... ")
-    for col in fix_negative_cols:
-        if col in df.columns:
-
-            positive_values = df.loc[df[col] >= 0, col]
-            if len(positive_values) > 0:
-                median_value = positive_values.median()
-                negative_mask = df[col] < 0
-                if negative_mask.sum() > 0:
-                    df.loc[negative_mask, col] = median_value
-                    print(
-                        f"  Fix {col}: {negative_mask.sum()} dòng → median = {median_value:.4f}"
-                    )
-            else:
-                print(f"   {col}: Không có giá trị dương")
-
-    must_positive_cols = [
-        "Flow Duration",
-        "Fwd Header Length",
-        "Fwd Header Length.1",
-        "Bwd Header Length",
-        "min_seg_size_forward",
-    ]
-    must_positive_cols = [col for col in must_positive_cols if col in df.columns]
-    negative_rows = ((df[must_positive_cols] < 0).any(axis=1)).sum()
-    print(f"Số dòng chứa giá trị âm không hợp lệ - Xóa bỏ: {negative_rows}")
-    df = df[~(df[must_positive_cols] < 0).any(axis=1)]
-    print(f"Số dòng còn lại: {df.shape[0]}")
-    print()
+    existing_cols = [c for c in drop_negative_cols if c in df.columns]
+    negative_mask = (df[existing_cols] < 0).any(axis=1)
+    print(f"Số dòng sẽ xóa: {negative_mask.sum()}")
+    df = df[~negative_mask]
+    print(f"Dữ liệu còn lại: {df.shape}")
 
     # Xóa cột định danh
+    print("-----Xử lý các cột định danh-----")
+
     cols_drop = [
         "Flow ID",
         "Source IP",
@@ -103,6 +80,8 @@ def data_cleaned(df_input: pd.DataFrame):
     ]
     existing_cols = [c for c in cols_drop if c in df.columns]
     df = df.drop(columns=existing_cols)
+    print(f"Cột đã xóa: {existing_cols}")
+    print(f"Dữ liệu còn lại: {df.shape}")
 
     # Xóa cột không biến thiên
     print("-----Xử lý các cột không biến thiên-----")
@@ -110,7 +89,7 @@ def data_cleaned(df_input: pd.DataFrame):
     print(f"Số cột không biến thiên: {len(constant_cols)}")
     print(f"Các cột sẽ xóa: {constant_cols}")
     df = df.drop(columns=constant_cols)
-    print(f"\nSố dòng, cột còn lại: {df.shape}")
+    print(f"\nDữ liệu còn lại: {df.shape}")
 
     return df
 
