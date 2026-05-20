@@ -12,6 +12,7 @@
 1. KHÔNG thay đổi cấu trúc thư mục
 2. KHÔNG push code lỗi, code không chạy được
 3. Commit rõ phần bản thân làm
+4. Pull origin main trước khi push code mới
 
 ## Tổng quan nhánh
 ### main
