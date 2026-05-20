@@ -63,7 +63,7 @@ def run_baseline(X_train, X_test, y_train):
     y_pred = model.predict(X_test)  # Nhãn cứng (0 hoặc 1)
     y_prob = model.predict_proba(X_test)[:, 1]  # Xác suất rơi vào lớp 1 (Attack)
 
-    # # 4. Tính toán các Metric
+    # 4. Tính toán các Metric
     # cm = confusion_matrix(y_test, y_pred)
     # tn, fp, fn, tp = cm.ravel()
 
