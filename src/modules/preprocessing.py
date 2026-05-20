@@ -1,5 +1,4 @@
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
 
@@ -8,17 +7,13 @@ def preprocess_baseline(df_input):
 
     # 1. Chuẩn hóa binary
     df["Label"] = df["Label"].apply(lambda x: 0 if x == "BENIGN" else 1)
+    print(f"Số cột còn lại: {df.shape[1]}")
     # 2. Encode
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
     if "Label" in cat_cols:
         cat_cols.remove("Label")
     if len(cat_cols) > 0:
-        # print(f"Đang encode các cột: {cat_cols}")
-        le = LabelEncoder()
-        for col in cat_cols:
-            df[col] = le.fit_transform(df[col].astype(str))
-    else:
-        print("Không có cột phân loại nào cần encode.")
+        print(f"Các cột chưa được xử lý: {cat_cols}")
 
     # 3. Tách X, Y
     X = df.drop("Label", axis=1)
