@@ -75,11 +75,11 @@ def run_baseline(X_train, X_test, y_train):
     # rec = recall_score(y_test, y_pred, zero_division=0)
     # f1 = f1_score(y_test, y_pred, zero_division=0)
 
-    # # Tính Brier Score và ECE
+    # Tính Brier Score và ECE
     # brier = brier_score_loss(y_test, y_prob)
     # ece = calculate_ece(y_test, y_prob, n_bins=10)
 
-    # # 5. In kết quả
+    # 5. In kết quả
     # print("\nKẾT QUẢ ĐÁNH GIÁ TRÊN TẬP TEST (20%):")
     # print(f"Accuracy           : {acc:.4f}")
     # print(f"Precision          : {prec:.4f}")
