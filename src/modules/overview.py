@@ -16,10 +16,12 @@ def data_overview(df):
     unique_labels = df["Label"].unique().tolist()
     num_classes = len(unique_labels)
     print(f"Nhãn: {unique_labels} - Số lớp: {num_classes} ")
-    classes_distribution = df["Label"].value_counts(normalize=True) * 100
+    label_counts = df["Label"].value_counts().sort_index()
     print("Phân bố:")
-    for label, percent in classes_distribution.items():
-        print(f"{label}: {percent:.2f}%")
+    for label in label_counts.index:
+        count = label_counts[label]
+        percent = (count / len(df)) * 100
+        print(f"{label}: {count} ({percent:.2f}%)")
     print()
 
     # Đặc trưng

@@ -2,12 +2,92 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.calibration import calibration_curve
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    brier_score_loss,
+)
 
 # Thư mục mặc định để lưu ảnh
 SAVE_DIR = "./results"
 os.makedirs(SAVE_DIR, exist_ok=True)
+
+
+def calculate_ece(y_true, y_prob, n_bins=10):
+    """
+    Hàm tính toán Expected Calibration Error (ECE).
+    Chia dải xác suất [0, 1] thành n_bins, tính chênh lệch giữa
+    độ chính xác thực tế (Accuracy) và độ tự tin (Confidence) ở mỗi bin.
+    """
+    # Đảm bảo y_true là numpy array để dễ dùng boolean mask
+    y_true = np.array(y_true)
+
+    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
+    ece = 0.0
+
+    for i in range(n_bins):
+        # Tìm các mẫu có xác suất rơi vào bin hiện tại
+        if i == n_bins - 1:
+            bin_mask = (y_prob >= bin_edges[i]) & (y_prob <= bin_edges[i + 1])
+        else:
+            bin_mask = (y_prob >= bin_edges[i]) & (y_prob < bin_edges[i + 1])
+
+        n_samples = np.sum(bin_mask)
+
+        if n_samples > 0:
+            # Độ chính xác thực tế của bin (Accuracy)
+            true_acc = np.mean(y_true[bin_mask])
+            # Xác suất dự đoán trung bình của bin (Confidence)
+            pred_conf = np.mean(y_prob[bin_mask])
+
+            # Trọng số của bin (dựa trên số lượng mẫu)
+            weight = n_samples / len(y_prob)
+
+            # Cộng dồn vào ECE
+            ece += weight * np.abs(true_acc - pred_conf)
+
+    return ece
+
+
+def evaluation_model(y_test, y_pred, y_prob, model_name):
+    print(f"\n-----ĐÁNH GIÁ MÔ HÌNH: {model_name}-----")
+    # 4. Tính toán các Metric
+    cm = confusion_matrix(y_test, y_pred)
+    tn, fp, fn, tp = cm.ravel()
+
+    # False Positive Rate (Tỷ lệ báo động nhầm)
+    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0
+
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, zero_division=0)
+    rec = recall_score(y_test, y_pred, zero_division=0)
+    f1 = f1_score(y_test, y_pred, zero_division=0)
+
+    # Tính Brier Score và ECE
+    brier = brier_score_loss(y_test, y_prob)
+    ece = calculate_ece(y_test, y_prob, n_bins=10)
+
+    # 5. In kết quả
+    print("\nKẾT QUẢ ĐÁNH GIÁ TRÊN TẬP TEST (20%):")
+    print(f"Accuracy           : {acc:.4f}")
+    print(f"Precision          : {prec:.4f}")
+    print(f"Recall             : {rec:.4f}  <-- Quan trọng cho IDS")
+    print(f"F1-Score           : {f1:.4f}  <-- Thước đo cân bằng")
+    print(f"FPR (Báo giả)      : {fpr:.4f}  <-- Càng thấp càng tốt")
+    print(f"Brier Score        : {brier:.4f}  <-- Metric cốt lõi cho Calibration")
+    print(f"ECE                : {ece:.4f}  <-- Mức độ chênh lệch xác suất trung bình")
+
+    print("\nConfusion Matrix:")
+    print(f"TN: {tn} | FP: {fp}")
+    print(f"FN: {fn} | TP: {tp}")
+    print("-" * 40)
+
 
 # Vẽ phân bố nhãn
 def plot_label_distribution(y, next_plot=True):
@@ -92,18 +172,17 @@ def plot_feature_boxplot(df, features, next_plot=True):
 
 
 # Vẽ Confusion Matrix
-def plot_confusion_matrix(y_test, y_pred, next_plot=True):
+def plot_confusion_matrix(y_test, y_pred, model_name, next_plot=True):
     cm = confusion_matrix(y_test, y_pred)
     disp = ConfusionMatrixDisplay(
         confusion_matrix=cm, display_labels=["Benign", "Attack"]
     )
     disp.plot(cmap="Blues")
-    plt.title("Confusion Matrix - Logistic Regression (Raw)")
+    plt.title(f"Confusion Matrix - {model_name}")
 
-    save_path = os.path.join(SAVE_DIR, "confusion_matrix.png")
+    save_path = os.path.join(SAVE_DIR, f"confusion_matrix_{model_name}.png")
     plt.savefig(save_path, bbox_inches="tight", dpi=300)
     print(f"\n[*] Đã lưu biểu đồ tại: {save_path}")
-
 
     tn, fp, fn, tp = cm.ravel()
     print("\nCONFUSION MATRIX")
@@ -115,7 +194,7 @@ def plot_confusion_matrix(y_test, y_pred, next_plot=True):
     print(f"Tỷ lệ False Alarm (FP/Benign): {fp/(tn+fp)*100:.2f}%")
     print(f"Tỷ lệ bỏ sót (FN/Attack):     {fn/(fn+tp)*100:.2f}%")
     print()
-    
+
     plt.show(block=False)
     plt.pause(1)
     if next_plot:
@@ -124,21 +203,19 @@ def plot_confusion_matrix(y_test, y_pred, next_plot=True):
 
 
 # Vẽ Reliability Diagram (Calibration Curve)
-def plot_reliability_diagram(y_test, y_pred_prob, next_plot=True):
+def plot_reliability_diagram(y_test, y_pred_prob, model_name, next_plot=True):
     prob_true, prob_pred = calibration_curve(y_test, y_pred_prob, n_bins=10)
 
     plt.figure(figsize=(6, 6))
-    plt.plot(
-        prob_pred, prob_true, marker="o", linewidth=2, label="Logistic Regression (Raw)"
-    )
+    plt.plot(prob_pred, prob_true, marker="o", linewidth=2, label=model_name)
     plt.plot([0, 1], [0, 1], linestyle="--", color="gray", label="Perfect Calibration")
     plt.xlabel("Mean Predicted Probability")
     plt.ylabel("Fraction of Positives (Actual Probability)")
-    plt.title("Reliability Diagram - Raw Model (Before Calibration)")
+    plt.title(f"Reliability Diagram - {model_name}")
     plt.legend()
     plt.grid(True)
 
-    save_path = os.path.join(SAVE_DIR, "reliability_diagram.png")
+    save_path = os.path.join(SAVE_DIR, f"reliability_diagram_{model_name}.png")
     plt.savefig(save_path, bbox_inches="tight", dpi=300)
     print(f"[*] Đã lưu biểu đồ tại: {save_path}")
 
