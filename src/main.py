@@ -12,6 +12,7 @@ from modules.evaluation import (
     evaluation_model,
 )
 from modules.Calibration.platt_scaling import platt_scaling
+from modules.Calibration.isotonic_regression import run_isotonic_regression
 
 # Read
 readFile = "./data/raw/Tuesday-WorkingHours.pcap_ISCX.csv"
@@ -48,6 +49,8 @@ if existing_features:
 model, y_prob, y_pred = run_baseline(X_train, X_test, y_train)
 # Platt Scaling
 platt_model, y_prob_platt, y_pred_platt = platt_scaling(model, X_cal, y_cal, X_test)
+# Isotonic Regression
+iso_model, iso_prob, iso_pred = run_isotonic_regression(model, X_cal, y_cal, X_test)
 
 # Metrics
 evaluation_model(y_test, y_pred, y_prob, model_name="Logistic Regression (Raw)")
@@ -59,3 +62,6 @@ plot_reliability_diagram(y_test, y_prob, model_name="Logistic Regression (Raw)")
 
 plot_confusion_matrix(y_test, y_pred_platt, model_name="Platt Scaling")
 plot_reliability_diagram(y_test, y_prob_platt, model_name="Platt Scaling")
+
+plot_confusion_matrix(y_test, iso_pred, model_name="Isotonic Regression")
+plot_reliability_diagram(y_test, iso_prob, model_name="Isotonic Regression")
