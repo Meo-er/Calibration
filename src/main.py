@@ -10,6 +10,7 @@ from modules.evaluation import (
     plot_reliability_diagram,
     plot_feature_boxplot,
     evaluation_model,
+    print_performance_comparison_table,
 )
 from modules.Calibration.platt_scaling import platt_scaling
 from modules.Calibration.isotonic_regression import run_isotonic_regression
@@ -45,6 +46,7 @@ feature_sample = ["Flow Duration", "Total Fwd Packets", "Flow Bytes/s"]
 existing_features = [f for f in feature_sample if f in df_cleaned.columns]
 if existing_features:
     plot_feature_boxplot(df_cleaned, existing_features)
+
 # Baseline
 model, y_prob, y_pred = run_baseline(X_train, X_test, y_train)
 # Platt Scaling
@@ -53,8 +55,17 @@ platt_model, y_prob_platt, y_pred_platt = platt_scaling(model, X_cal, y_cal, X_t
 iso_model, iso_prob, iso_pred = run_isotonic_regression(model, X_cal, y_cal, X_test)
 
 # Metrics
-evaluation_model(y_test, y_pred, y_prob, model_name="Logistic Regression (Raw)")
-evaluation_model(y_test, y_pred_platt, y_prob_platt, model_name="Platt Scaling")
+metrics_base = evaluation_model(
+    y_test, y_pred, y_prob, model_name="Logistic Regression (Raw)"
+)
+
+metrics_platt = evaluation_model(
+    y_test, y_pred_platt, y_prob_platt, model_name="Platt Scaling"
+)
+
+metrics_iso = evaluation_model(
+    y_test, iso_pred, iso_prob, model_name="Isotonic Regression"
+)
 
 # Biểu đồ baseline
 plot_confusion_matrix(y_test, y_pred, model_name="Logistic Regression (Raw)")
@@ -65,3 +76,6 @@ plot_reliability_diagram(y_test, y_prob_platt, model_name="Platt Scaling")
 
 plot_confusion_matrix(y_test, iso_pred, model_name="Isotonic Regression")
 plot_reliability_diagram(y_test, iso_prob, model_name="Isotonic Regression")
+
+# Bảng so sánh hiệu năng giữa các mô hình
+print_performance_comparison_table(metrics_base, metrics_platt, metrics_iso)
