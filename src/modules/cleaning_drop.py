@@ -26,7 +26,7 @@ def data_cleaned_1(df_input: pd.DataFrame):
     print(df.loc[nan_mask, "Label"].value_counts().rename_axis(None).to_string())
     print(f"Số dòng sẽ xóa: {df.isnull().any(axis=1).sum()} ")
     df = df.dropna()
-    print(f"Số dòng còn lại: {df.shape[0]}\n")
+    print(f"Dữ liệu còn lại: {df.shape}\n")
 
     # Xóa dòng trùng
     print("-----Xử lý các dòng trùng lặp-----")
@@ -35,10 +35,47 @@ def data_cleaned_1(df_input: pd.DataFrame):
     print(df.loc[duplicate_mask, "Label"].value_counts().rename_axis(None).to_string())
     print(f"Số dòng sẽ xóa: {df.duplicated().sum()}")
     df = df.drop_duplicates()
-    print(f"Số dòng còn lại: {df.shape[0]}")
+    print(f"Dữ liệu còn lại: {df.shape}")
     print()
 
+    # Xử lý dòng chứa giá trị âm
+    print("-----Xử lý các dòng giá trị âm-----")
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.to_list()
+    if "Label" in numeric_cols:
+        numeric_cols.remove("Label")
+    negative_count = (df[numeric_cols] < 0).sum()
+    negative_count = negative_count[negative_count > 0]
+    negative_row_count = (df[numeric_cols] < 0).any(axis=1).sum()
+    print(f"Tổng số dòng chứa giá trị âm: {negative_row_count}")
+    print(
+        f"Các cột chứa giá trị âm: \n{negative_count.sort_values(ascending=False).to_string()}"
+    )
+    print("Giữ Init_Win_bytes_backward và Init_Win_bytes_forward vì hợp lệ...")
+    # Xóa các dòng chứa giá trị âm ở các đặc trưng thời gian/tốc độ
+
+    drop_negative_cols = [
+        "Flow IAT Min",
+        "Flow IAT Mean",
+        "Flow IAT Max",
+        "Flow Packets/s",
+        "Flow Duration",
+        "Fwd Header Length.1",
+        "Fwd Header Length",
+        "min_seg_size_forward",
+        "Bwd Header Length",
+    ]
+    print(
+        "Xóa các dòng chứa giá trị âm tại Flow IAT Min, Flow IAT Mean, Flow Packets/s, Flow IAT Max, Flow Duration, Fwd Header Length.1, Fwd Header Length, min_seg_size_forward, Bwd Header Length"
+    )
+    existing_cols = [c for c in drop_negative_cols if c in df.columns]
+    negative_mask = (df[existing_cols] < 0).any(axis=1)
+    print(f"Số dòng sẽ xóa: {negative_mask.sum()}")
+    df = df[~negative_mask]
+    print(f"Dữ liệu còn lại: {df.shape}")
+
     # Xóa cột định danh
+    print("-----Xử lý các cột định danh-----")
+
     cols_drop = [
         "Flow ID",
         "Source IP",
@@ -49,6 +86,8 @@ def data_cleaned_1(df_input: pd.DataFrame):
     ]
     existing_cols = [c for c in cols_drop if c in df.columns]
     df = df.drop(columns=existing_cols)
+    print(f"Cột đã xóa: {existing_cols}")
+    print(f"Dữ liệu còn lại: {df.shape}")
 
     # Xóa cột không biến thiên
     print("-----Xử lý các cột không biến thiên-----")
@@ -56,7 +95,7 @@ def data_cleaned_1(df_input: pd.DataFrame):
     print(f"Số cột không biến thiên: {len(constant_cols)}")
     print(f"Các cột sẽ xóa: {constant_cols}")
     df = df.drop(columns=constant_cols)
-    print(f"\nSố dòng, cột còn lại: {df.shape}")
+    print(f"\nDữ liệu còn lại: {df.shape}")
 
     return df
 
