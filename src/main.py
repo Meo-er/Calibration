@@ -14,6 +14,7 @@ from modules.evaluation import (
 )
 from modules.Calibration.platt_scaling import platt_scaling
 from modules.Calibration.isotonic_regression import run_isotonic_regression
+from modules.analysis import extract_and_analyze_errors
 
 # Read
 readFile = "./data/raw/Tuesday-WorkingHours.pcap_ISCX.csv"
@@ -79,3 +80,6 @@ plot_reliability_diagram(y_test, iso_prob, model_name="Isotonic Regression")
 
 # Bảng so sánh hiệu năng giữa các mô hình
 print_performance_comparison_table(metrics_base, metrics_platt, metrics_iso)
+
+# Tự động quét tập Test thực tế để trích xuất và phân tích 5 mẫu lỗi hành vi mạng
+extract_and_analyze_errors(y_test.values, y_prob, y_prob_platt, iso_prob)
