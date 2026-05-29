@@ -55,7 +55,7 @@ def predict_flow(flow):
             "prob": platt_prob,
         },
         "Isotonic Regression": {
-            "label": "ATTACK" if iso_prob >= 0.5 else "BENIGN",
+            "label": "ATTACK" if iso_prob >= 0.35 else "BENIGN",
             "prob": iso_prob,
         },
     }
