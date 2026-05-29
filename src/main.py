@@ -1,8 +1,10 @@
 import pandas as pd
+import joblib
+import os
 
 from modules.overview import data_overview
 from modules.cleaning import data_cleaned
-from modules.preprocessing import preprocess_baseline
+from modules.preprocess_train import preprocess_train
 from modules.baseline import run_baseline
 from modules.evaluation import (
     plot_label_distribution,
@@ -15,6 +17,10 @@ from modules.evaluation import (
 from modules.Calibration.platt_scaling import platt_scaling
 from modules.Calibration.isotonic_regression import run_isotonic_regression
 
+# Tạo thư mục models nếu chưa tồn tại
+models_dir = os.path.join(os.path.dirname(__file__), "models")
+os.makedirs(models_dir, exist_ok=True)
+
 # Read
 readFile = "./data/raw/Tuesday-WorkingHours.pcap_ISCX.csv"
 df = pd.read_csv(readFile)
@@ -25,13 +31,37 @@ data_overview(df)
 df_cleaned = data_cleaned(df)
 benign = (df_cleaned["Label"] == "BENIGN").sum()
 attack = (df_cleaned["Label"] != "BENIGN").sum()
+total = len(df_cleaned)
+benign_percent = (benign / total) * 100
+attack_percent = (attack / total) * 100
 print(f"Tỷ lệ Benign:Attack = {benign}:{attack} ~ {benign/attack:.0f}:1")
+print(f"Tỷ lệ phần trăm:")
+print(f"  - Benign: {benign_percent:.2f}%")
+print(f"  - Attack: {attack_percent:.2f}%")
 
 df_cleaned.to_csv("./data/processed/tuesday_cleaned.csv", index=False)
 
 # Chia dữ liệu
-X_train, X_cal, X_test, y_train, y_cal, y_test = preprocess_baseline(df_cleaned)
+(
+    X_train,
+    X_cal,
+    X_test,
+    X_test_raw,
+    y_train,
+    y_cal,
+    y_test,
+    scaler,
+    encoders,
+    feature_columns,
+) = preprocess_train(df_cleaned)
 
+# Lưu tập test để chạy demo
+test_df = pd.DataFrame(X_test_raw, columns=feature_columns)
+test_df["Label"] = y_test.map({0: "BENIGN", 1: "ATTACK"})
+
+test_df.to_csv("./data/processed/test_set.csv", index=False)
+
+print("Đã lưu test_set.csv")
 # Biểu đồ dữ liệu ban đầu
 y_total = pd.concat([y_train, y_cal, y_test])
 print("\nPHÂN BỐ NHÃN BAN ĐẦU")
@@ -49,10 +79,28 @@ if existing_features:
 
 # Baseline
 model, y_prob, y_pred = run_baseline(X_train, X_test, y_train)
+
 # Platt Scaling
 platt_model, y_prob_platt, y_pred_platt = platt_scaling(model, X_cal, y_cal, X_test)
 # Isotonic Regression
 iso_model, iso_prob, iso_pred = run_isotonic_regression(model, X_cal, y_cal, X_test)
+
+
+# Save model
+joblib.dump(platt_model, os.path.join(models_dir, "model_platt.pkl"))
+joblib.dump(iso_model, os.path.join(models_dir, "model_iso.pkl"))
+joblib.dump(model, os.path.join(models_dir, "model_baseline.pkl"))
+
+# Save scaler
+joblib.dump(scaler, os.path.join(models_dir, "scaler.pkl"))
+
+# Save encoders
+joblib.dump(encoders, os.path.join(models_dir, "encoders.pkl"))
+
+# Save feature columns
+joblib.dump(feature_columns, os.path.join(models_dir, "features.pkl"))
+
+print("Đã lưu model!")
 
 # Metrics
 metrics_base = evaluation_model(

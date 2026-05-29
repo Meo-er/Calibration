@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 
-# readFile = "./data/raw/Tuesday-WorkingHours.pcap_ISCX.csv"
-# df = pd.read_csv(readFile)
+readFile = "./data/raw/Tuesday-WorkingHours.pcap_ISCX.csv"
+df = pd.read_csv(readFile)
 
 
 def data_cleaned_1(df_input: pd.DataFrame):
@@ -100,4 +100,4 @@ def data_cleaned_1(df_input: pd.DataFrame):
     return df
 
 
-# df_cleaned = data_cleaned(df)
+df_cleaned = data_cleaned_1(df)

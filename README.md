@@ -1,4 +1,4 @@
-## Đề tài: 29 - Hiệu chỉnh xác suất dự đoán cho IDS nhị phân trên bộ dữ liệu CICIDS2017
+# Đề tài: 29 - Hiệu chỉnh xác suất dự đoán cho IDS nhị phân trên bộ dữ liệu CICIDS2017
 
 ## Hướng dẫn cài đặt
 
@@ -9,7 +9,7 @@
 
 ## Quy ước làm việc
 
-1. KHÔNG thay đổi cấu trúc thư mục
+1. KHÔNG thay đổi cấu trúc thư mục gốc
 2. KHÔNG push code lỗi, code không chạy được
 3. Commit rõ phần bản thân làm
 4. Pull origin main trước khi push code mới
@@ -19,7 +19,11 @@
 Nhánh chính, chứa code mới, ổn định, không commit trực tiếp trên nhánh này
 ### Các nhánh làm việc
 1. Tạo từ main
-2. Quy ước đặt tên: feature/ten-chuc-nang
+2. Quy ước đặt tên: 
+``` 
+Chức năng mới: feature/ten-chuc-nang
+Sửa lỗi: fix/ten-chuc-nang
+```
 ### Bắt đầu chức năng mới 
 ```
 git checkout main
