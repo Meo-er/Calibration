@@ -35,17 +35,15 @@ def predict_flow(flow):
     # Preprocess
     X = preprocess_demo(df, scaler, encoders, feature_columns)
 
-    # Predict
+    # Logistic Regression
     base_pred = base_model.predict(X)[0]
     base_prob = base_model.predict_proba(X)[0][1]
 
     # Platt Scaling
     platt_prob = platt_model.predict_proba(X)[0][1]
-    platt_pred = platt_model.predict(X)[0]
 
     # Isotonic
     iso_prob = iso_model.predict_proba(X)[0][1]
-    iso_pred = iso_model.predict(X)[0]
 
     return {
         "Logistic Regression": {
@@ -53,11 +51,11 @@ def predict_flow(flow):
             "prob": base_prob,
         },
         "Platt Scaling": {
-            "label": "ATTACK" if platt_pred == 1 else "BENIGN",
+            "label": "ATTACK" if platt_prob >= 0.5 else "BENIGN",
             "prob": platt_prob,
         },
         "Isotonic Regression": {
-            "label": "ATTACK" if iso_pred == 1 else "BENIGN",
+            "label": "ATTACK" if iso_prob >= 0.5 else "BENIGN",
             "prob": iso_prob,
         },
     }
