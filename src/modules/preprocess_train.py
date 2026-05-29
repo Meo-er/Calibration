@@ -1,8 +1,10 @@
+from json import encoder
+
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
 
-def preprocess_baseline(df_input):
+def preprocess_train(df_input):
     df = df_input.copy()
 
     # 1. Chuẩn hóa binary
@@ -10,6 +12,7 @@ def preprocess_baseline(df_input):
     print(f"Số cột còn lại: {df.shape[1]}")
 
     # 2. Encode
+    encoders = {}
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
     if "Label" in cat_cols:
         cat_cols.remove("Label")
@@ -18,12 +21,14 @@ def preprocess_baseline(df_input):
         for col in cat_cols:
             le = LabelEncoder()
             df[col] = le.fit_transform(df[col].astype(str))
+            encoders[col] = le
     else:
         print("Không có cột phân loại nào cần encode.")
 
     # 3. Tách X, Y
     X = df.drop("Label", axis=1)
     y = df["Label"]
+    feature_columns = X.columns.tolist()
 
     # 4. Chia train/calibration/test (60/20/20)
 
@@ -44,4 +49,15 @@ def preprocess_baseline(df_input):
     print(f"Calibration: {X_cal.shape}")
     print(f"Test: {X_test.shape}")
 
-    return X_train, X_cal, X_test, y_train, y_cal, y_test
+    return (
+        X_train,
+        X_cal,
+        X_test,
+        X_test_raw,
+        y_train,
+        y_cal,
+        y_test,
+        scaler,
+        encoders,
+        feature_columns,
+    )
