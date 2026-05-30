@@ -47,15 +47,15 @@ def predict_flow(flow):
 
     return {
         "Logistic Regression": {
-            "label": "ATTACK" if base_pred == 1 else "BENIGN",
+            "label": "ATTACK" if base_pred >= 0.5 else "BENIGN",
             "prob": base_prob,
         },
         "Platt Scaling": {
-            "label": "ATTACK" if platt_prob >= 0.5 else "BENIGN",
+            "label": "ATTACK" if platt_prob >= 0.45 else "BENIGN",
             "prob": platt_prob,
         },
         "Isotonic Regression": {
-            "label": "ATTACK" if iso_prob >= 0.35 else "BENIGN",
+            "label": "ATTACK" if iso_prob >= 0.59 else "BENIGN",
             "prob": iso_prob,
         },
     }
