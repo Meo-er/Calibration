@@ -33,26 +33,11 @@ def display_result(results, truth=None):
 
     for method, result in results.items():
 
-        # 1. Lấy xác suất dự đoán (prob) từ kết quả
+        label = result["label"]
         prob = result["prob"]
-        
-        # 2. Phân nhánh ngưỡng cắt tối ưu cho từng mô hình theo báo cáo tuần 4
-        if "Isotonic" in method:
-            threshold = 0.35
-        elif "Platt" in method:
-            threshold = 0.42
-        else: # Dành cho mô hình Raw Logistic Regression
-            threshold = 0.50
-            
-        # 3. Ép lại nhãn phân loại dựa trên ngưỡng tối ưu mới
-        if prob >= threshold:
-            label = "ATTACK"
-        else:
-            label = "BENIGN"
 
         print("\n" + "-" * 60)
-        print(f"Mô hình: {method}")
-        print(f"Ngưỡng cắt (Threshold) đang dùng: {threshold}")
+        print(f"{method}")
 
         print(f"Prediction: {label}")
         print(f"Probability : {prob:.6f}")
