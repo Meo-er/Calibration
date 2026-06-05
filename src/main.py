@@ -103,6 +103,30 @@ joblib.dump(feature_columns, os.path.join(models_dir, "features.pkl"))
 
 print("Đã lưu model!")
 
+from sklearn.metrics import precision_recall_curve
+import numpy as np
+
+def find_optimal_threshold(y_true, y_prob, model_name):
+    # Lấy ra mảng Precision, Recall và các ngưỡng tương ứng
+    precision, recall, thresholds = precision_recall_curve(y_true, y_prob)
+    
+    # Tính F1-score cho tất cả các ngưỡng
+    f1_scores = 2 * (precision * recall) / (precision + recall + 1e-9)
+    
+    # Lấy vị trí (index) của F1-score cao nhất
+    optimal_idx = np.argmax(f1_scores)
+    optimal_threshold = thresholds[optimal_idx]
+    
+    print(f"Ngưỡng tối ưu của {model_name}: {optimal_threshold:.4f}")
+    return optimal_threshold
+
+print("\n" + "="*60)
+print("--- KẾT QUẢ QUÉT NGƯỠNG CẮT TỐI ƯU (THRESHOLD TUNING) ---")
+opt_thresh_base = find_optimal_threshold(y_test, y_prob, "Logistic Regression (Raw)")
+opt_thresh_platt = find_optimal_threshold(y_test, y_prob_platt, "Platt Scaling")
+opt_thresh_iso = find_optimal_threshold(y_test, iso_prob, "Isotonic Regression")
+print("="*60 + "\n")
+
 # Metrics
 metrics_base = evaluation_model(
     y_test, y_pred, y_prob, model_name="Logistic Regression (Raw)"
